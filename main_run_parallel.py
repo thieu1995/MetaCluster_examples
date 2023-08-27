@@ -10,9 +10,9 @@ from metacluster import get_dataset, MetaCluster
 
 
 def execute_model(data_name):
-    PATH_SAVE = "history"
-    EPOCH = 300
-    POP_SIZE = 30
+    PATH_SAVE = "history_100"
+    EPOCH = 100
+    POP_SIZE = 50
     data = get_dataset(data_name)
     data.X, scaler = data.scale(data.X, method="MinMaxScaler")
 
@@ -29,21 +29,19 @@ def execute_model(data_name):
         {"name": "RUN", "epoch": EPOCH, "pop_size": POP_SIZE},
         {"name": "INFO", "epoch": EPOCH, "pop_size": POP_SIZE},
     ]
-    list_obj = ["MSEI", "CHI", "NMIS", "ARS"]
+    list_obj = ["MSEI", "CHI", "RTS", "ARS"]
     list_metric = ["BHI", "DBI", "DI", "SI", "RSI", "FMS", "HS", "CS", "VMS", "KS"]
 
     model = MetaCluster(list_optimizer=list_optimizer, list_paras=list_paras, list_obj=list_obj, n_trials=10)
-    model.execute(data, cluster_finder="elbow", list_metric=list_metric, save_path=PATH_SAVE, verbose=False)
+    model.execute(data, cluster_finder="all_majority", list_metric=list_metric, save_path=PATH_SAVE, verbose=False)
     model.save_boxplots()
     model.save_convergences()
 
 
 if __name__ == '__main__':
     time_start = time.perf_counter()
-
-    list_datasets = ["aniso", "balance", "blobs", "circles", "smiley", "liver", "Varied", "Glass", "Zoo", "Vowel"]
+    list_datasets = ["aniso", "balance", "blobs", "circles", "smiley", "liver", "varied", "Glass", "Zoo", "Vowel"]
     N_CPUS_RUN = len(list_datasets)
     with parallel.ProcessPoolExecutor(N_CPUS_RUN) as executor:
-        results = executor.map(execute_model, list_datasets)
-
+        executor.map(execute_model, list_datasets)
     print(f"Experiment DONE: {time.perf_counter() - time_start} seconds")
